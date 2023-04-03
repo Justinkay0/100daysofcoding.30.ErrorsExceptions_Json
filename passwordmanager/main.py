@@ -56,18 +56,35 @@ def save():
 
                 data = json.load(data_file)
                 # json.load is read mode
-
-                data.update(new_data)
-                # json.update is append
-        finally:
+        except FileNotFoundError:
+            with open('data.json', mode='w') as data_file:
+                json.dump(new_data, data_file, indent=4)
+        else:
+            data.update(new_data)
             with open('data.json', mode='w') as data_file:
                 json.dump(data, data_file, indent=4)
+            # json.update is append
+        finally:
+            # data_file.write(f"{website} | {email} | {password}\n")
+            website_entry.delete(0, END)
+            password_entry.delete(0, END)
 
-                # data_file.write(f"{website} | {email} | {password}\n")
-                website_entry.delete(0, END)
-                password_entry.delete(0, END)
+# ---------------------------- SEARCH FUNCTION ------------------------------- #
 
-
+def find_password():
+    try:
+        with open('data.json', mode = 'r') as data_file:
+            data = json.load(data_file)
+    except FileNotFoundError:
+        messagebox.showerror(title='No file found', message='No data file found')
+    else:
+        try:
+            request = data[website_entry.get()]
+        except KeyError:
+            messagebox.showerror(title='No website found', message='No details for the website exists')
+        else:
+            messagebox.showinfo(title=f'Details for {website_entry.get()} login',
+                                message=f"username:{request.get('email')}\n password:{request.get('password')}")
 # ---------------------------- UI SETUP ------------------------------- #
 
 window = Tk()
@@ -88,8 +105,8 @@ password_label = Label(text="Password:")
 password_label.grid(row=3, column=0)
 
 # Entries
-website_entry = Entry(width=35)
-website_entry.grid(row=1, column=1, columnspan=2)
+website_entry = Entry(width=21)
+website_entry.grid(row=1, column=1)
 website_entry.focus()
 email_entry = Entry(width=35)
 email_entry.grid(row=2, column=1, columnspan=2)
@@ -98,6 +115,8 @@ password_entry = Entry(width=21)
 password_entry.grid(row=3, column=1)
 
 # Buttons
+search_button = Button(text='Search',command=find_password)
+search_button.grid(row=1,column=2)
 generate_password_button = Button(text="Generate Password", command=generate_password)
 generate_password_button.grid(row=3, column=2)
 add_button = Button(text="Add", width=36, command=save)
